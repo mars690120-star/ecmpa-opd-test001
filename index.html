@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>義大癌治療醫院門診用藥指導服務滿意度問卷</title>
+    
+    <!-- 
+    ========================================================================
+    [README / 維護說明]
+    ========================================================================
+    
+    1. 隱私權與資料安全：
+       本系統所有資料（包含草稿、簽名、表單內容）皆僅儲存於使用者瀏覽器 (localStorage) 
+       或透過檔案下載保留。本程式碼完全沒有與後端伺服器通訊，亦不會自動上傳個資。
+    
+    2. 外部套件依賴 (CDN)：
+       本檔案使用以下 CDN 進行 PDF 與 Excel 匯出功能。若需在無網路內網使用，
+       請下載對應 .js 檔案放到與本 HTML 同目錄，並修改下方 <script> 來源：
+       
+       - jsPDF (PDF 生成): https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js
+         => 改為: <script src="jspdf.umd.min.js"></script>
+       
+       - html2canvas (畫面截圖): https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
+         => 改為: <script src="html2canvas.min.js"></script>
+       
+       - SheetJS (Excel 匯出): https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+         => 改為: <script src="xlsx.full.min.js"></script>
+    ========================================================================
+    -->
+
+    <!-- 外部套件 CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            /* 配色系統 */
+            --primary-blue: #0056b3;      /* 醫療藍 */
+            --tech-green: #28a745;        /* 科技綠 */
+            --tech-gray: #6c757d;         /* 科技灰 */
+            --bg-color: #f8f9fa;
+            --input-border: #ced4da;
+            --danger: #dc3545;
+            --text-dark: #333;
+            
+            /* 尺寸變數 */
+            --container-width: 900px;
+            --input-padding: 8px 12px;
+            --radius: 6px;
+        }
+
+        * { box-sizing: border-box; font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 主容器：A4 寬度風格，響應式 */
+        .container {
+            background: #fff;
+            width: 100%;
+            max-width: var(--container-width);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* 頁首 Header */
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--primary-blue);
+            padding-bottom: 15px;
+        }
+
+        .lang-select {
+            padding: 5px 10px;
+            border: 1px solid var(--primary-blue);
+            border-radius: var(--radius);
+            color: var(--primary-blue);
+            font-weight: bold;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .header-id-display {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--tech-green);
+            background: #e9f7ef;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--tech-green);
+        }
+
+        .title-block {
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            font-size: 1.8em;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        h1 svg { width: 32px; height: 32px; fill: currentColor; }
+
+        .welcome-text {
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.5;
+            text-align: left;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f4f8;
+            border-left: 4px solid var(--primary-blue);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* 區塊樣式 */
+        section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--radius);
+            position: relative;
+        }
+
+        section h2 {
+            font-size: 1.3em;
+            color: var(--primary-blue);
+            margin-top: 0;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 表單欄位 grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.95em;
+            color: #444;
+        }
+
+        /* 透明背景輸入框 */
+        input[type="text"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+            background-color: transparent;
+            border: 1px solid var(--input-border);
+            padding: var(--input-padding);
+            border-radius: var(--radius);
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 2px rgba(0,86,179,0.1);
+        }
+
+        /* 輸入群組 (用於藥師新增按鈕) */
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .input-group select {
+            flex: 1;
+        }
+
+        /* 錯誤狀態 */
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.85em;
+            margin-top: 4px;
+            display: none;
+        }
+        .has-error input, .has-error select, .has-error canvas, .has-error .drug-confirmed-area {
+            border-color: var(--danger) !important;
+            background-color: #fff8f8 !important;
+        }
+        .has-error .error-msg { display: block; }
+
+        /* 藥師與藥品管理區 */
+        .manage-btn {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            background: var(--tech-gray);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .add-btn {
+            background: var(--tech-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .add-btn:hover { background: #218838; }
+
+        /* 藥品區塊 - 左右佈局 */
+        .drug-selection-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .drug-left-col, .drug-right-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        .drug-right-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .drug-confirmed-area {
+            flex: 1;
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius);
+            padding: 10px;
+            background: #fdfdfd;
+            min-height: 80px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+        }
+        
+        /* 藥品標籤 Tag */
+        .selected-tag {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.9em;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .selected-tag:hover {
+            background-color: #dee2e6;
+        }
+        .selected-tag span.remove-x {
+            color: var(--danger);
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 2px;
+        }
+        .selected-tag span.remove-x:hover {
+            color: #bd2130;
+        }
+
+        /* 問卷區塊 */
+        .survey-q {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #fdfdfd;
+            border-radius: 6px;
+            border-left: 3px solid #ddd;
+        }
+        .survey-q h3 {
+            font-size: 1.05em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .survey-q h3 svg { width: 20px; height: 20px; margin-right: 8px; color: var(--primary-blue); }
+
+        .q-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .q-label {
+            width: 80px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .label-before { color: #d63384; } /* 衛教前顏色 */
+        .label-after { color: var(--primary-blue); } /* 衛教後顏色 */
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        /* 自訂 Radio */
+        .custom-radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .custom-radio {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--tech-gray);
+            border-radius: 50%;
+            margin-right: 6px;
+            position: relative;
+        }
+        .custom-radio:checked {
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--primary-blue), var(--tech-green));
+        }
+        .custom-radio:checked::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* 一般 Checkbox (問卷其他選項用) */
+        .custom-checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 5px 10px;
+        }
+
+        /* 追蹤提示 */
+        .follow-up-hint {
+            font-size: 0.85em;
+            color: #666;
+            font-style: italic;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        /* Canvas 簽名 */
+        .signature-pad {
+            border: 2px dashed var(--input-border);
+            border-radius: var(--radius);
+            cursor: crosshair;
+            background: #fff;
+            touch-action: none; /* 防止觸控捲動 */
+            width: 100%;
+            height: 200px;
+        }
+        .sig-controls {
+            margin-top: 5px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 隱私聲明 */
+        .privacy-policy {
+            font-size: 0.8em;
+            color: #555;
+            line-height: 1.6;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f3f5;
+            border-radius: var(--radius);
+        }
+
+        /* 頁尾按鈕 */
+        .footer-actions {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-draft { background-color: var(--tech-green); color: white; }
+        .btn-open { background-color: var(--danger); color: white; }
+        .btn-complete { background-color: var(--primary-blue); color: white; }
+        .btn-reset { background-color: var(--tech-gray); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--tech-gray); color: var(--text-dark); }
+
+        /* Modal 樣式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .modal h3 { margin-top: 0; color: var(--primary-blue); }
+        .modal textarea { width: 100%; height: 150px; margin-bottom: 10px; }
+
+        /* Custom Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(40, 44, 52, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 2000;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .toast.error { background: rgba(220, 53, 69, 0.9); }
+        .toast.success { background: rgba(40, 167, 69, 0.9); }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; margin: 0; }
+            .footer-actions, .lang-select, .manage-btn, .sig-controls, .add-btn, .remove-x { display: none !important; }
+            header { margin-bottom: 15px; padding-bottom: 5px; }
+            h1 { font-size: 1.4em; }
+            .survey-q { break-inside: avoid; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; }
+            .signature-pad { border: 1px solid #000; }
+            /* 強制背景列印 */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .footer-actions { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .q-row { flex-direction: column; align-items: flex-start; }
+            .q-label { margin-bottom: 5px; }
+            .drug-selection-layout { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="surveyContainer">
+    <!-- Header -->
+    <header>
+        <div style="flex: 1;">
+            <select id="langSelect" class="lang-select" onchange="changeLanguage()">
+                <option value="tw">繁體中文 (TW)</option>
+                <option value="en">English (US)</option>
+                <option value="jp">日本語 (JP)</option>
+                <option value="kr">한국어 (KR)</option>
+            </select>
+        </div>
+        <div class="header-id-display">
+            <span data-i18n="eduIdLabel">衛教編號：</span>
+            <span id="headerIdDisplay">______</span>
+        </div>
+        <div class="title-block">
+            <h1>
+                <!-- Medical Cross Icon -->
+                <svg viewBox="0 0 24 24"><path d="M12 2L12 22 M2 12L22 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+                <span data-i18n="mainTitle">義大癌治療醫院門診用藥指導服務滿意度問卷</span>
+            </h1>
+            <div class="welcome-text" data-i18n="welcomeMsg">
+                親愛的病友/家屬您好：<br>
+                為提升本院藥物諮詢服務品質，請您撥冗填寫此份問卷。您的寶貴意見將是我們進步的動力。
+            </div>
+        </div>
+    </header>
+
+    <form id="surveyForm">
+        <!-- 病人基本資料 -->
+        <section>
+            <h2 data-i18n="sectionPatient">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                病人基本資料
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label data-i18n="filler">填寫者</label>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <label class="custom-radio-label"><input type="radio" name="filler" value="self" class="custom-radio" checked onclick="toggleProxy(false)"><span data-i18n="fillerSelf">本人</span></label>
+                        <label class="custom-radio-label"><input type="radio" name="filler" value="proxy" class="custom-radio" onclick="toggleProxy(true)"><span data-i18n="fillerProxy">代填</span></label>
+                    </div>
+                    <input type="text" id="proxyRelation" name="proxyRelation" placeholder="請輸入關係" style="margin-top: 5px; display: none;">
+                </div>
+                <div class="form-group" id="group-patientId">
+                    <label><span data-i18n="patientId">病歷號/身分證號</span> <span style="color:red">*</span></label>
+                    <input type="text" id="patientId" name="patientId" required maxlength="10" placeholder="A123456789">
+                    <div class="error-msg" data-i18n="errRequiredFormat">必填且需為英數字</div>
+                </div>
+                <div class="form-group" id="group-patientName">
+                    <label><span data-i18n="patientName">姓名</span> <span style="color:red">*</span></label>
+                    <input type="text" id="patientName" name="patientName" required>
+                    <div class="error-msg" data-i18n="errRequired">此欄位必填</div>
+                </div>
+                <div class="form-group" id="group-phone">
+                    <label><span data-i18n="phone">聯絡電話</span> <span style="color:red">*</span></label>
+                    <input type="tel" id="phone" name="phone" required placeholder="0912345678">
+                    <div class="error-msg" data-i18n="errPhone">格式錯誤 (需含數字, +)</div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="education">教育程度</label>
+                    <select name="education" id="education">
+                        <option value="primary" data-i18n="eduPrimary">小學</option>
+                        <option value="junior" data-i18n="eduJunior">國中</option>
+                        <option value="senior" data-i18n="eduSenior">高中</option>
+                        <option value="college" data-i18n="eduCollege">大(專)</option>
+                        <option value="master" data-i18n="eduMaster">碩士以上</option>
+                        <option value="none" data-i18n="eduNone">不識字</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="eduLang">衛教語言</label>
+                    <select name="eduLanguage" id="eduLanguage">
+                        <option value="Mandarin">國語</option>
+                        <option value="Taiwanese">台語</option>
+                        <option value="English">English</option>
+                        <option value="Other">其他</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- 衛教藥師 (修正重點 1) -->
+        <section id="group-pharmacist">
+            <h2 data-i18n="sectionPharmacist">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                衛教藥師資料 <button type="button" class="manage-btn" onclick="openManager('pharmacist')" data-i18n="manageBtn">管理名單</button>
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label><span data-i18n="pharmacistName">衛教藥師姓名</span> <span style="color:red">*</span></label>
+                    <!-- 下拉選單 + 即時新增按鈕 -->
+                    <div class="input-group">
+                        <select id="pharmacistName" name="pharmacistName" required>
+                            <!-- Dynamic options populated by JS -->
+                        </select>
+                        <button type="button" class="add-btn" onclick="addPharmacistQuickly()" title="新增藥師">+</button>
+                    </div>
+                    <div class="error-msg" data-i18n="errRequired">此欄位必填</div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="date">衛教日期</label>
+                    <input type="date" id="surveyDate" name="surveyDate">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="time">衛教時間</label>
+                    <input type="time" id="surveyTime" name="surveyTime">
+                </div>
+            </div>
+        </section>
+
+        <!-- 藥品選擇 (修正重點 2) -->
+        <section id="group-drugs">
+            <h2 data-i18n="sectionDrugs">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><circle cx="17" cy="17" r="5"/><path d="M12 17h10"/><path d="M12 7H2"/></svg>
+                衛教藥品 <button type="button" class="manage-btn" onclick="openManager('drugs')" data-i18n="manageBtn">管理名單</button>
+            </h2>
+            <div class="drug-selection-layout">
+                <!-- 左側：藥品清單選擇 -->
+                <div class="drug-left-col">
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">請選擇藥品 (可複選)</label>
+                    <select id="drugSelect" onchange="handleDrugSelection(this)" style="width:100%;">
+                        <option value="">-- 請選擇藥品加入 --</option>
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+                
+                <!-- 右側：確認清單 -->
+                <div class="drug-right-col">
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">確認衛教品項</label>
+                    <div id="confirmedDrugList" class="drug-confirmed-area">
+                        <!-- Selected Tags appear here -->
+                    </div>
+                    <div class="error-msg" id="drugErrorMsg" style="display:none;" data-i18n="errRequired">請至少選擇一項藥品</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 追蹤提示語 -->
+        <div class="follow-up-hint" data-i18n="followUpHint">
+            為了確保用藥安全與服務品質，本院可能會在您接受衛教後進行電話追蹤訪談。所有資料將僅用於醫療品質改善，並依照個人資料保護法嚴格保密。
+        </div>
+
+        <!-- 認知度 -->
+        <section>
+            <h2 data-i18n="sectionKnowledge">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                藥物認知度調查
+            </h2>
+            <!-- Q1 -->
+            <div class="survey-q" id="q-k1">
+                <h3 data-i18n="q_usage">1. 藥物用途與作用</h3>
+                <div class="q-row">
+                    <span class="q-label label-before" data-i18n="labelBefore">衛教前</span>
+                    <div class="radio-group" id="rg-k1-pre"></div>
+                </div>
+                <div class="q-row">
+                    <span class="q-label label-after" data-i18n="labelAfter">衛教後</span>
+                    <div class="radio-group" id="rg-k1-post"></div>
+                </div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+            <!-- Q2 -->
+            <div class="survey-q" id="q-k2">
+                <h3 data-i18n="q_method">2. 藥物用法與劑量</h3>
+                <div class="q-row">
+                    <span class="q-label label-before" data-i18n="labelBefore">衛教前</span>
+                    <div class="radio-group" id="rg-k2-pre"></div>
+                </div>
+                <div class="q-row">
+                    <span class="q-label label-after" data-i18n="labelAfter">衛教後</span>
+                    <div class="radio-group" id="rg-k2-post"></div>
+                </div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+            <!-- Q3 -->
+            <div class="survey-q" id="q-k3">
+                <h3 data-i18n="q_sideeffect">3. 注意事項與副作用</h3>
+                <div class="q-row">
+                    <span class="q-label label-before" data-i18n="labelBefore">衛教前</span>
+                    <div class="radio-group" id="rg-k3-pre"></div>
+                </div>
+                <div class="q-row">
+                    <span class="q-label label-after" data-i18n="labelAfter">衛教後</span>
+                    <div class="radio-group" id="rg-k3-post"></div>
+                </div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+        </section>
+
+        <!-- 滿意度 -->
+        <section>
+            <h2 data-i18n="sectionSatisfaction">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                滿意度調查
+            </h2>
+            <div class="survey-q" id="q-s1">
+                <h3 data-i18n="q_process">1. 本院用藥指導流程滿意度</h3>
+                <div class="radio-group" id="rg-s1"></div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+            <div class="survey-q" id="q-s2">
+                <h3 data-i18n="q_attitude">2. 藥師服務態度</h3>
+                <div class="radio-group" id="rg-s2"></div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+            <div class="survey-q" id="q-s3">
+                <h3 data-i18n="q_askAgain">3. 下次是否會再詢問藥師</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <label class="custom-radio-label"><input type="radio" name="askAgain" value="yes" class="custom-radio" onclick="toggleOtherInput('askAgain', false)"><span data-i18n="optYes">會</span></label>
+                    <label class="custom-radio-label"><input type="radio" name="askAgain" value="no" class="custom-radio" onclick="toggleOtherInput('askAgain', false)"><span data-i18n="optNo">不會</span></label>
+                    <label class="custom-radio-label"><input type="radio" name="askAgain" value="other" class="custom-radio" onclick="toggleOtherInput('askAgain', true)"><span data-i18n="optOther">其他寶貴意見</span></label>
+                </div>
+                <input type="text" id="askAgainOther" name="askAgainOther" style="width:100%; margin-top:10px; display:none;" placeholder="請輸入意見">
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+            <div class="survey-q" id="q-s4">
+                <h3 data-i18n="q_callback">4. 願意接受後續電訪追蹤</h3>
+                <div style="display: flex; gap: 15px;">
+                    <label class="custom-radio-label"><input type="radio" name="callback" value="yes" class="custom-radio" onclick="toggleCallback(true)"><span data-i18n="optWilling">願意</span></label>
+                    <label class="custom-radio-label"><input type="radio" name="callback" value="no" class="custom-radio" onclick="toggleCallback(false)"><span data-i18n="optUnwilling">不願意</span></label>
+                </div>
+                <!-- Callback Details -->
+                <div id="callbackDetails" style="margin-top: 15px; display: none; background: #f9f9f9; padding: 15px; border-radius: 4px;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="cbTime">方便電訪時間</label>
+                            <select name="cbTimeSelect" id="cbTimeSelect" onchange="checkCbTimeOther()">
+                                <option value="am">上午 (09:00-12:00)</option>
+                                <option value="pm">下午 (14:00-17:00)</option>
+                                <option value="other">其他</option>
+                            </select>
+                            <input type="text" id="cbTimeOther" name="cbTimeOther" style="margin-top:5px; display:none;" placeholder="請輸入時間">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="cbContact">聯絡人</label>
+                            <input type="text" name="cbContact" id="cbContact">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="cbPhone">聯絡電話</label>
+                            <input type="tel" name="cbPhone" id="cbPhone">
+                        </div>
+                    </div>
+                </div>
+                <div class="error-msg" data-i18n="errIncomplete">未完成</div>
+            </div>
+        </section>
+
+        <!-- 簽名 -->
+        <section id="group-signature">
+            <h2 data-i18n="sectionSign">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                病人/家屬簽名 <span style="color:red">*</span>
+            </h2>
+            <div class="signature-wrapper">
+                <canvas id="sigCanvas" class="signature-pad"></canvas>
+                <div class="sig-controls">
+                    <button type="button" class="btn btn-outline" onclick="clearSignature()" data-i18n="btnSignClear">清除</button>
+                    <!-- 無障礙替代方案：打字簽名 (選用，依需求隱藏或開啟) -->
+                </div>
+            </div>
+            <div class="error-msg" data-i18n="errRequired">請簽名</div>
+        </section>
+
+        <!-- 隱私聲明 -->
+        <div class="privacy-policy">
+            <strong>【個人資料保護聲明】</strong><br>
+            本問卷所蒐集之個人資料（包含姓名、病歷號、聯絡方式、用藥資訊等），僅限於義大癌治療醫院藥劑科進行用藥指導服務品質改善及必要之追蹤訪談使用。本院將恪遵「個人資料保護法」之規定，妥善保存您的資料，絕不將資料提供給第三方或用於其他用途。您的資料將存儲於本地端，並於服務結束後依規定存檔或銷毀。
+        </div>
+
+        <!-- 功能按鈕 -->
+        <div class="footer-actions">
+            <button type="button" class="btn btn-draft" onclick="saveDraft()" title="儲存並下載草稿">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span data-i18n="btnDraft">暫存草稿</span>
+            </button>
+            <button type="button" class="btn btn-open" onclick="document.getElementById('draftInput').click()" title="開啟舊草稿">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 9l-5 5-5-5M12 12.8V2.5"/></svg>
+                <span data-i18n="btnOpen">開啟草稿</span>
+            </button>
+            <input type="file" id="draftInput" accept=".json" style="display:none" onchange="loadDraftFromFile(this)">
+
+            <button type="button" class="btn btn-complete" onclick="finishSurvey()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="btnComplete">完成並匯出</span>
+            </button>
+            
+            <button type="button" class="btn btn-reset" onclick="resetForm()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span data-i18n="btnReset">重置</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal: 管理名單 -->
+<div class="modal-overlay" id="managerModal">
+    <div class="modal">
+        <h3 id="mgrTitle">管理名單</h3>
+        <p style="font-size:0.9em; color:#666;">每行一項資料。編輯後按「儲存」即可更新。</p>
+        <textarea id="mgrContent"></textarea>
+        <div style="text-align: right; margin-top: 10px;">
+            <button type="button" class="btn btn-outline" style="font-size:0.9em; padding:5px 15px;" onclick="closeManager()">取消</button>
+            <button type="button" class="btn btn-complete" style="font-size:0.9em; padding:5px 15px;" onclick="saveManager()">儲存</button>
+        </div>
+        <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee;">
+            <button type="button" class="manage-btn" onclick="exportListJson()">匯出 JSON</button>
+            <button type="button" class="manage-btn" onclick="document.getElementById('importListInput').click()">匯入 JSON</button>
+            <input type="file" id="importListInput" accept=".json" style="display:none" onchange="importListJson(this)">
+        </div>
+    </div>
+</div>
+
+<!-- 自訂確認視窗 -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="max-width: 400px;">
+        <h3 id="confirmTitle" data-i18n="msgConfirmTitle">確認</h3>
+        <p id="confirmMessage" style="margin: 20px 0;">訊息內容</p>
+        <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="confirmCancelBtn" style="font-size:0.9em; padding:8px 20px;">取消</button>
+            <button type="button" class="btn btn-complete" id="confirmOkBtn" style="font-size:0.9em; padding:8px 20px;">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 訊息框 -->
+<div id="toast" class="toast">訊息</div>
+
+<script>
+/**
+ * 系統初始化與變數
+ */
+const STORAGE_KEY_PHARMACISTS = 'medSurvey_pharmacists';
+const STORAGE_KEY_DRUGS = 'medSurvey_drugs';
+
+// 修正重點：更新預設藥師名單
+const DEFAULT_PHARMACISTS = ["史一良 藥師", "盧怡婷 藥師", "黃晨紘 藥師", "呂秉家 藥師", "林玉茹 藥師"];
+const DEFAULT_DRUGS = ["Herceptin (Trastuzumab)", "Taxotere (Docetaxel)", "Alimta (Pemetrexed)", "Avastin (Bevacizumab)", "Oxalip (Oxaliplatin)", "TS-1 (Gimeracil/Oteracil/Tegafur)", "Abraxane (Paclitaxel)", "Erbitux (Cetuximab)", "Vectibix (Panitumumab)", "Xeloda (Capecitabine)"];
+
+// 儲存已選藥品的陣列
+let selectedDrugList = [];
+
+// 多語系字典
+const i18n = {
+    tw: {
+        eduIdLabel: "衛教編號：",
+        mainTitle: "義大癌治療醫院門診用藥指導服務滿意度問卷",
+        welcomeMsg: "親愛的病友/家屬您好：<br>為提升本院藥物諮詢服務品質，請您撥冗填寫此份問卷。您的寶貴意見將是我們進步的動力。",
+        sectionPatient: "病人基本資料",
+        filler: "填寫者", fillerSelf: "本人", fillerProxy: "代填",
+        patientId: "病歷號/身分證號", patientName: "姓名", phone: "聯絡電話",
+        education: "教育程度", eduPrimary:"小學", eduJunior:"國中", eduSenior:"高中", eduCollege:"大(專)", eduMaster:"碩士以上", eduNone:"不識字",
+        eduLang: "衛教語言",
+        sectionPharmacist: "衛教藥師資料", manageBtn: "管理名單",
+        pharmacistName: "衛教藥師姓名", date: "衛教日期", time: "衛教時間",
+        sectionDrugs: "衛教藥品",
+        followUpHint: "為了確保用藥安全與服務品質，本院可能會在您接受衛教後進行電話追蹤訪談。所有資料將僅用於醫療品質改善，並依照個人資料保護法嚴格保密。",
+        sectionKnowledge: "藥物認知度調查",
+        q_usage: "1. 藥物用途與作用", q_method: "2. 藥物用法與劑量", q_sideeffect: "3. 注意事項與副作用",
+        labelBefore: "衛教前", labelAfter: "衛教後",
+        scale: ["非常清楚", "清楚", "尚可", "不清楚", "非常不清楚"],
+        sectionSatisfaction: "滿意度調查",
+        q_process: "1. 本院用藥指導流程滿意度", q_attitude: "2. 藥師服務態度", q_askAgain: "3. 下次是否會再詢問藥師", q_callback: "4. 願意接受後續電訪追蹤",
+        satScale: ["非常滿意", "滿意", "尚可", "不滿意", "非常不滿意"],
+        optYes: "會", optNo: "不會", optOther: "其他寶貴意見",
+        optWilling: "願意", optUnwilling: "不願意",
+        cbTime: "方便電訪時間", cbContact: "聯絡人", cbPhone: "聯絡電話",
+        sectionSign: "病人/家屬簽名", btnSignClear: "清除",
+        btnDraft: "暫存草稿", btnOpen: "開啟草稿", btnComplete: "完成並匯出", btnReset: "重置",
+        errRequired: "此欄位必填", errRequiredFormat: "必填且僅限英數字", errPhone: "格式錯誤 (需含數字, +)", errIncomplete: "未完成",
+        msgDraftSaved: "草稿已儲存並下載", msgDraftLoaded: "草稿載入完成",
+        msgConfirmComplete: "確定要完成並匯出表單嗎？", msgConfirmReset: "確定要重置表單嗎？所有未儲存的內容將消失。",
+        msgConfirmTitle: "確認", msgCancel: "取消", msgOk: "確定"
+    },
+    en: {
+        eduIdLabel: "Edu ID: ",
+        mainTitle: "Outpatient Medication Education & Satisfaction Survey",
+        welcomeMsg: "Dear Patient/Family:<br>To improve our service quality, please take a moment to fill out this survey. Your feedback is highly appreciated.",
+        sectionPatient: "Patient Information",
+        filler: "Filled By", fillerSelf: "Self", fillerProxy: "Proxy",
+        patientId: "Chart No. / ID No.", patientName: "Name", phone: "Phone",
+        education: "Education", eduPrimary:"Elementary", eduJunior:"Junior High", eduSenior:"High School", eduCollege:"College", eduMaster:"Master or above", eduNone:"None",
+        eduLang: "Language",
+        sectionPharmacist: "Pharmacist Info", manageBtn: "Manage",
+        pharmacistName: "Pharmacist Name", date: "Date", time: "Time",
+        sectionDrugs: "Medications",
+        followUpHint: "For safety and quality assurance, we may contact you for a follow-up interview. All data is confidential and used only for quality improvement.",
+        sectionKnowledge: "Medication Knowledge",
+        q_usage: "1. Purpose & Effect", q_method: "2. Dosage & Usage", q_sideeffect: "3. Precautions & Side Effects",
+        labelBefore: "Before", labelAfter: "After",
+        scale: ["Very Clear", "Clear", "Fair", "Unclear", "Very Unclear"],
+        sectionSatisfaction: "Satisfaction",
+        q_process: "1. Process Satisfaction", q_attitude: "2. Pharmacist Attitude", q_askAgain: "3. Ask Again in Future", q_callback: "4. Accept Follow-up Call",
+        satScale: ["Very Satisfied", "Satisfied", "Fair", "Dissatisfied", "Very Dissatisfied"],
+        optYes: "Yes", optNo: "No", optOther: "Other",
+        optWilling: "Yes", optUnwilling: "No",
+        cbTime: "Preferred Time", cbContact: "Contact Person", cbPhone: "Phone",
+        sectionSign: "Signature", btnSignClear: "Clear",
+        btnDraft: "Save Draft", btnOpen: "Open Draft", btnComplete: "Complete & Export", btnReset: "Reset",
+        errRequired: "Required", errRequiredFormat: "Required (Alphanumeric only)", errPhone: "Invalid format", errIncomplete: "Incomplete",
+        msgDraftSaved: "Draft saved and downloaded", msgDraftLoaded: "Draft loaded",
+        msgConfirmComplete: "Complete and export?", msgConfirmReset: "Reset form? Unsaved data will be lost.",
+        msgConfirmTitle: "Confirm", msgCancel: "Cancel", msgOk: "OK"
+    },
+    jp: {
+        eduIdLabel: "教育番号：",
+        mainTitle: "外来薬剤指導サービス満足度アンケート",
+        welcomeMsg: "患者様・ご家族様へ：<br>サービス向上のため、アンケートにご協力をお願いいたします。",
+        sectionPatient: "患者基本情報",
+        filler: "記入者", fillerSelf: "本人", fillerProxy: "代理",
+        patientId: "カルテ番号/ID", patientName: "氏名", phone: "電話番号",
+        education: "学歴", eduPrimary:"小学校", eduJunior:"中学校", eduSenior:"高校", eduCollege:"大学・専門", eduMaster:"修士以上", eduNone:"なし",
+        eduLang: "言語",
+        sectionPharmacist: "薬剤師情報", manageBtn: "管理",
+        pharmacistName: "薬剤師氏名", date: "日付", time: "時間",
+        sectionDrugs: "薬剤一覧",
+        followUpHint: "安全確認のため、後日お電話を差し上げることがあります。個人情報は厳重に管理されます。",
+        sectionKnowledge: "薬剤理解度",
+        q_usage: "1. 用途と効果", q_method: "2. 用法と用量", q_sideeffect: "3. 注意事項と副作用",
+        labelBefore: "指導前", labelAfter: "指導後",
+        scale: ["非常によくわかる", "わかる", "普通", "わからない", "全くわからない"],
+        sectionSatisfaction: "満足度",
+        q_process: "1. 手順への満足度", q_attitude: "2. 薬剤師の態度", q_askAgain: "3. 今後も相談したいか", q_callback: "4. 電話追跡の可否",
+        satScale: ["非常に満足", "満足", "普通", "不満", "非常に不満"],
+        optYes: "はい", optNo: "いいえ", optOther: "その他",
+        optWilling: "はい", optUnwilling: "いいえ",
+        cbTime: "希望時間", cbContact: "連絡先氏名", cbPhone: "電話番号",
+        sectionSign: "署名", btnSignClear: "クリア",
+        btnDraft: "下書き保存", btnOpen: "開く", btnComplete: "完了・出力", btnReset: "リセット",
+        errRequired: "必須", errRequiredFormat: "必須 (英数字)", errPhone: "形式エラー", errIncomplete: "未完了",
+        msgDraftSaved: "下書きを保存しました", msgDraftLoaded: "下書きを読み込みました",
+        msgConfirmComplete: "完了して出力しますか？", msgConfirmReset: "リセットしますか？未保存のデータは失われます。",
+        msgConfirmTitle: "確認", msgCancel: "キャンセル", msgOk: "OK"
+    },
+    kr: {
+        eduIdLabel: "교육 번호: ",
+        mainTitle: "외래 복약지도 만족도 설문조사",
+        welcomeMsg: "환자 및 보호자 여러분:<br>서비스 품질 향상을 위해 설문 작성을 부탁드립니다.",
+        sectionPatient: "환자 기본 정보",
+        filler: "작성자", fillerSelf: "본인", fillerProxy: "대리인",
+        patientId: "차트 번호 / ID", patientName: "성명", phone: "전화번호",
+        education: "학력", eduPrimary:"초등학교", eduJunior:"중학교", eduSenior:"고등학교", eduCollege:"대학교", eduMaster:"대학원 이상", eduNone:"없음",
+        eduLang: "언어",
+        sectionPharmacist: "약사 정보", manageBtn: "관리",
+        pharmacistName: "약사 성명", date: "날짜", time: "시간",
+        sectionDrugs: "약품 목록",
+        followUpHint: "약물 안전을 위해 추후 전화 상담이 진행될 수 있습니다. 모든 정보는 철저히 보호됩니다.",
+        sectionKnowledge: "복약 이해도",
+        q_usage: "1. 용도 및 효과", q_method: "2. 용법 및 용량", q_sideeffect: "3. 주의사항 및 부작용",
+        labelBefore: "교육 전", labelAfter: "교육 후",
+        scale: ["매우 잘 이해함", "이해함", "보통", "이해 못함", "전혀 이해 못함"],
+        sectionSatisfaction: "만족도",
+        q_process: "1. 절차 만족도", q_attitude: "2. 약사 태도", q_askAgain: "3. 재문의 의향", q_callback: "4. 추적 전화 동의",
+        satScale: ["매우 만족", "만족", "보통", "불만족", "매우 불만족"],
+        optYes: "예", optNo: "아니오", optOther: "기타",
+        optWilling: "동의", optUnwilling: "미동의",
+        cbTime: "희망 시간", cbContact: "연락처", cbPhone: "전화번호",
+        sectionSign: "서명", btnSignClear: "지우기",
+        btnDraft: "임시 저장", btnOpen: "열기", btnComplete: "완료 및 내보내기", btnReset: "초기화",
+        errRequired: "필수 항목", errRequiredFormat: "필수 (영숫자)", errPhone: "형식 오류", errIncomplete: "미완료",
+        msgDraftSaved: "초안이 저장되었습니다", msgDraftLoaded: "초안을 불러왔습니다",
+        msgConfirmComplete: "완료하고 내보내시겠습니까?", msgConfirmReset: "초기화하시겠습니까? 저장되지 않은 데이터는 손실됩니다.",
+        msgConfirmTitle: "확인", msgCancel: "취소", msgOk: "확인"
+    }
+};
+
+let currentLang = 'tw';
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 設為今日
+    const now = new Date();
+    document.getElementById('surveyDate').valueAsDate = now;
+    document.getElementById('surveyTime').value = now.toTimeString().slice(0,5);
+
+    initCanvas();
+    loadManagerData(); // 載入藥師與藥品
+    initSurveyRadios(); // 產生問卷 Radio DOM
+    changeLanguage(); // 應用預設語言
+    
+    // 綁定 ID 同步
+    const pIdInput = document.getElementById('patientId');
+    pIdInput.addEventListener('input', (e) => {
+        // 過濾非英數字
+        e.target.value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        document.getElementById('headerIdDisplay').textContent = e.target.value || "______";
+    });
+    
+    // 電話格式簡易檢查
+    document.getElementById('phone').addEventListener('input', function(e){
+        this.value = this.value.replace(/[^0-9+]/g, '');
+    });
+});
+
+// UI Helper Functions (Toast & Modal)
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
+}
+
+function showConfirm(message, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    const msgEl = document.getElementById('confirmMessage');
+    const titleEl = document.getElementById('confirmTitle');
+    const cancelBtn = document.getElementById('confirmCancelBtn');
+    const okBtn = document.getElementById('confirmOkBtn');
+    const dict = i18n[currentLang];
+
+    // 設定文字
+    titleEl.textContent = dict.msgConfirmTitle || "確認";
+    msgEl.textContent = message;
+    cancelBtn.textContent = dict.msgCancel || "取消";
+    okBtn.textContent = dict.msgOk || "確定";
+
+    modal.style.display = 'flex';
+
+    // 綁定單次事件
+    const cleanup = () => {
+        modal.style.display = 'none';
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+    };
+
+    okBtn.onclick = () => {
+        cleanup();
+        onConfirm();
+    };
+
+    cancelBtn.onclick = cleanup;
+}
+
+/**
+ * 語言切換
+ */
+function changeLanguage() {
+    currentLang = document.getElementById('langSelect').value;
+    const dict = i18n[currentLang];
+    
+    // 更新 data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if(dict[key]) {
+            if(el.tagName === 'INPUT' && el.type === 'text') {
+                el.placeholder = dict[key]; 
+            } else {
+                el.innerHTML = dict[key];
+            }
+        }
+    });
+
+    // 重繪 Radio Labels (因為是動態生成的)
+    initSurveyRadios();
+}
+
+/**
+ * 動態生成問卷選項 (因應語言切換)
+ */
+function initSurveyRadios() {
+    const dict = i18n[currentLang];
+    
+    // 認知度 Helper
+    const createKnowledgeRadios = (containerId, name) => {
+        const container = document.getElementById(containerId);
+        // 保留選取值
+        const selected = document.querySelector(`input[name="${name}"]:checked`)?.value;
+        container.innerHTML = '';
+        
+        dict.scale.forEach((label, idx) => {
+            const val = 5 - idx; 
+            const html = `
+                <label class="custom-radio-label">
+                    <input type="radio" name="${name}" value="${val}" class="custom-radio" ${selected == val ? 'checked' : ''}>
+                    <span>${label}</span>
+                </label>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    };
+
+    // 認知度題目
+    ['rg-k1-pre', 'rg-k1-post'].forEach(id => createKnowledgeRadios(id, id.replace('rg-', '')));
+    ['rg-k2-pre', 'rg-k2-post'].forEach(id => createKnowledgeRadios(id, id.replace('rg-', '')));
+    ['rg-k3-pre', 'rg-k3-post'].forEach(id => createKnowledgeRadios(id, id.replace('rg-', '')));
+
+    // 滿意度 Helper
+    const createSatRadios = (containerId, name) => {
+        const container = document.getElementById(containerId);
+        const selected = document.querySelector(`input[name="${name}"]:checked`)?.value;
+        container.innerHTML = '';
+        dict.satScale.forEach((label, idx) => {
+            const val = 5 - idx;
+            const html = `
+                <label class="custom-radio-label">
+                    <input type="radio" name="${name}" value="${val}" class="custom-radio" ${selected == val ? 'checked' : ''}>
+                    <span>${label}</span>
+                </label>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    };
+    createSatRadios('rg-s1', 'satProcess');
+    createSatRadios('rg-s2', 'satAttitude');
+}
+
+/**
+ * 藥師與藥品清單管理 (修正重點)
+ */
+let currentMgrType = '';
+
+function loadManagerData() {
+    // 1. 載入藥師名單
+    let pharmacists = JSON.parse(localStorage.getItem(STORAGE_KEY_PHARMACISTS));
+    if (!pharmacists || pharmacists.length === 0) pharmacists = DEFAULT_PHARMACISTS;
+    
+    const pSelect = document.getElementById('pharmacistName');
+    const currentVal = pSelect.value;
+    pSelect.innerHTML = '<option value="">-- 請選擇藥師 --</option>';
+    pharmacists.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p; opt.textContent = p;
+        pSelect.appendChild(opt);
+    });
+    // 嘗試恢復之前選取的值
+    if(currentVal && pharmacists.includes(currentVal)) {
+        pSelect.value = currentVal;
+    }
+
+    // 2. 載入藥品下拉選單 (修正重點)
+    let drugs = JSON.parse(localStorage.getItem(STORAGE_KEY_DRUGS));
+    if (!drugs || drugs.length === 0) drugs = DEFAULT_DRUGS;
+    
+    const dSelect = document.getElementById('drugSelect');
+    dSelect.innerHTML = '<option value="">-- 請選擇藥品加入 --</option>';
+    
+    drugs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        dSelect.appendChild(opt);
+    });
+}
+
+/**
+ * 藥師：即時新增功能
+ */
+function addPharmacistQuickly() {
+    const newName = prompt("請輸入新藥師姓名：");
+    if(newName && newName.trim()) {
+        const name = newName.trim();
+        let pharmacists = JSON.parse(localStorage.getItem(STORAGE_KEY_PHARMACISTS));
+        if (!pharmacists) pharmacists = DEFAULT_PHARMACISTS;
+        
+        if(!pharmacists.includes(name)) {
+            pharmacists.push(name);
+            localStorage.setItem(STORAGE_KEY_PHARMACISTS, JSON.stringify(pharmacists));
+            loadManagerData(); // 重新渲染選單
+            // 自動選取剛新增的藥師
+            document.getElementById('pharmacistName').value = name;
+            showToast(`已新增並選取：${name}`, "success");
+        } else {
+            showToast("該藥師已在名單中", "error");
+            document.getElementById('pharmacistName').value = name;
+        }
+    }
+}
+
+/**
+ * 藥品：選擇與清單顯示邏輯
+ */
+function handleDrugSelection(selectElement) {
+    const val = selectElement.value;
+    if(!val) return;
+
+    if(!selectedDrugList.includes(val)) {
+        selectedDrugList.push(val);
+        renderSelectedDrugs();
+        document.getElementById('drugErrorMsg').style.display = 'none'; // 隱藏錯誤訊息
+    }
+    
+    // 重置下拉選單回預設值，方便下次選擇
+    selectElement.value = "";
+}
+
+function removeDrug(drugName) {
+    selectedDrugList = selectedDrugList.filter(d => d !== drugName);
+    renderSelectedDrugs();
+}
+
+function renderSelectedDrugs() {
+    const container = document.getElementById('confirmedDrugList');
+    container.innerHTML = '';
+    
+    selectedDrugList.forEach(drug => {
+        const tag = document.createElement('div');
+        tag.className = 'selected-tag';
+        tag.innerHTML = `
+            ${drug}
+            <span class="remove-x" onclick="removeDrug('${drug}')">x</span>
+        `;
+        container.appendChild(tag);
+    });
+}
+
+/**
+ * 管理介面邏輯 (保留原功能)
+ */
+function openManager(type) {
+    currentMgrType = type;
+    const title = type === 'pharmacist' ? '管理藥師名單' : '管理藥品清單';
+    const key = type === 'pharmacist' ? STORAGE_KEY_PHARMACISTS : STORAGE_KEY_DRUGS;
+    const defaults = type === 'pharmacist' ? DEFAULT_PHARMACISTS : DEFAULT_DRUGS;
+    
+    let data = JSON.parse(localStorage.getItem(key)) || defaults;
+    
+    document.getElementById('mgrTitle').textContent = title;
+    document.getElementById('mgrContent').value = data.join('\n');
+    
+    document.getElementById('managerModal').style.display = 'flex';
+}
+
+function closeManager() {
+    document.getElementById('managerModal').style.display = 'none';
+}
+
+function saveManager() {
+    const text = document.getElementById('mgrContent').value;
+    const list = text.split('\n').map(x => x.trim()).filter(x => x);
+    const key = currentMgrType === 'pharmacist' ? STORAGE_KEY_PHARMACISTS : STORAGE_KEY_DRUGS;
+    
+    localStorage.setItem(key, JSON.stringify(list));
+    loadManagerData();
+    closeManager();
+}
+
+function exportListJson() {
+    const text = document.getElementById('mgrContent').value;
+    const list = text.split('\n').map(x => x.trim()).filter(x => x);
+    const blob = new Blob([JSON.stringify(list, null, 2)], {type: "application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${currentMgrType}_list.json`;
+    a.click();
+}
+
+function importListJson(input) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const list = JSON.parse(e.target.result);
+            if(Array.isArray(list)) {
+                document.getElementById('mgrContent').value = list.join('\n');
+            } else {
+                showToast('JSON 格式錯誤，需為陣列', 'error');
+            }
+        } catch(err) {
+            showToast('JSON 解析錯誤', 'error');
+        }
+    };
+    reader.readAsText(file);
+    input.value = '';
+}
+
+/**
+ * 互動邏輯
+ */
+function toggleProxy(isProxy) {
+    document.getElementById('proxyRelation').style.display = isProxy ? 'block' : 'none';
+}
+
+function toggleOtherInput(name, show) {
+    if(name === 'askAgain') {
+        document.getElementById('askAgainOther').style.display = show ? 'block' : 'none';
+    }
+}
+
+function toggleCallback(isWilling) {
+    document.getElementById('callbackDetails').style.display = isWilling ? 'block' : 'none';
+}
+
+function checkCbTimeOther() {
+    const val = document.getElementById('cbTimeSelect').value;
+    document.getElementById('cbTimeOther').style.display = (val === 'other') ? 'block' : 'none';
+}
+
+/**
+ * Canvas 簽名功能
+ */
+let canvas, ctx, isDrawing = false;
+
+function initCanvas() {
+    canvas = document.getElementById('sigCanvas');
+    ctx = canvas.getContext('2d');
+    
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width || canvas.offsetWidth || 300;
+    const height = rect.height || canvas.offsetHeight || 200;
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    ctx.scale(ratio, ratio);
+    
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
+
+    // Mouse Events
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseout', stopDraw);
+
+    // Touch Events
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); 
+        startDraw(e.touches[0]);
+    });
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        draw(e.touches[0]);
+    });
+    canvas.addEventListener('touchend', stopDraw);
+}
+
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function startDraw(e) {
+    isDrawing = true;
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    document.getElementById('group-signature').classList.remove('has-error');
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+}
+
+function stopDraw() {
+    if (isDrawing) {
+        ctx.closePath();
+        isDrawing = false;
+    }
+}
+
+function clearSignature() {
+    const ratio = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+}
+
+function isCanvasBlank() {
+    if (canvas.width === 0 || canvas.height === 0) return true;
+    try {
+        const pixelBuffer = new Uint32Array(
+            ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+        );
+        return !pixelBuffer.some(color => color !== 0);
+    } catch (e) {
+        console.warn("Canvas check failed:", e);
+        return true;
+    }
+}
+
+/**
+ * 資料驗證與取得
+ */
+function validateForm(checkSignature = true) {
+    let isValid = true;
+    let firstError = null;
+
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    // 必填檢查清單
+    const requiredInputs = [
+        { id: 'patientId', group: 'group-patientId' },
+        { id: 'patientName', group: 'group-patientName' },
+        { id: 'phone', group: 'group-phone', pattern: /^[0-9+]{6,}$/ },
+        { id: 'pharmacistName', group: 'group-pharmacist' }
+    ];
+
+    requiredInputs.forEach(item => {
+        const el = document.getElementById(item.id);
+        const group = document.getElementById(item.group) || el.parentElement;
+        if (!el.value.trim() || (item.pattern && !item.pattern.test(el.value.trim()))) {
+            group.classList.add('has-error');
+            isValid = false;
+            if(!firstError) firstError = group;
+        }
+    });
+
+    // 藥品檢查 (修正重點：改為檢查陣列)
+    if(selectedDrugList.length === 0) {
+        const drugContainer = document.getElementById('confirmedDrugList');
+        drugContainer.classList.add('has-error');
+        document.getElementById('drugErrorMsg').style.display = 'block';
+        isValid = false;
+        if(!firstError) firstError = drugContainer;
+    } else {
+        document.getElementById('drugErrorMsg').style.display = 'none';
+    }
+
+    // 問卷 Radio 檢查
+    const radioGroups = [
+        'k1-pre', 'k1-post', 'k2-pre', 'k2-post', 'k3-pre', 'k3-post',
+        'satProcess', 'satAttitude', 'askAgain', 'callback'
+    ];
+    radioGroups.forEach(name => {
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        if (!checked) {
+            let container = null;
+            const rgElement = document.getElementById(`rg-${name}`);
+            if (rgElement) {
+                container = rgElement.closest('.survey-q');
+            } else {
+                const inputEl = document.querySelector(`input[name="${name}"]`);
+                if (inputEl) {
+                    container = inputEl.closest('.survey-q') || inputEl.closest('.form-group');
+                }
+            }
+            
+            if(container) {
+                container.classList.add('has-error');
+                isValid = false;
+                if(!firstError) firstError = container;
+            }
+        }
+    });
+
+    // 簽名檢查
+    if (checkSignature && isCanvasBlank()) {
+        const sigGroup = document.getElementById('group-signature');
+        sigGroup.classList.add('has-error');
+        isValid = false;
+        if(!firstError) firstError = sigGroup;
+    }
+
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    return isValid;
+}
+
+function getFormData() {
+    const form = document.getElementById('surveyForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // 修正重點：使用 selectedDrugList
+    data.drugs = selectedDrugList;
+    
+    // 簽名 Image
+    data.signature = canvas.toDataURL('image/png');
+    
+    // 補充欄位
+    data.eduId = document.getElementById('headerIdDisplay').textContent;
+    data.lang = currentLang;
+    data.timestamp = new Date().toISOString();
+
+    return data;
+}
+
+/**
+ * 暫存與開啟草稿
+ */
+function saveDraft() {
+    const data = getFormData();
+    if (!data.patientId) {
+        showToast("需至少填寫病歷號才可暫存", "error");
+        document.getElementById('patientId').focus();
+        return;
+    }
+
+    const key = `medSurveyDraft_${data.patientId}_${Date.now()}`;
+    localStorage.setItem(key, JSON.stringify(data));
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `survey_draft_${data.patientId}.json`;
+    a.click();
+
+    validateForm(false);
+    showToast(i18n[currentLang].msgDraftSaved, "success");
+}
+
+function loadDraftFromFile(input) {
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            fillForm(data);
+        } catch(err) {
+            console.error(err);
+            showToast("檔案格式錯誤", "error");
+        }
+    };
+    reader.readAsText(file);
+    input.value = '';
+}
+
+function fillForm(data) {
+    const form = document.getElementById('surveyForm');
+    
+    for (const [key, value] of Object.entries(data)) {
+        const input = form.elements[key];
+        if (input && (input.type === 'text' || input.type === 'date' || input.type === 'time' || input.type === 'tel' || input.tagName === 'SELECT')) {
+            input.value = value;
+        }
+    }
+    
+    document.querySelectorAll('input[type="radio"]').forEach(r => {
+        if (data[r.name] == r.value) r.checked = true;
+    });
+
+    // 修正重點：恢復藥品清單顯示
+    if (data.drugs && Array.isArray(data.drugs)) {
+        selectedDrugList = data.drugs;
+        renderSelectedDrugs();
+    } else {
+        selectedDrugList = [];
+        renderSelectedDrugs();
+    }
+
+    document.getElementById('patientId').dispatchEvent(new Event('input'));
+    if(data.filler === 'proxy') toggleProxy(true);
+    if(data.askAgain === 'other') toggleOtherInput('askAgain', true);
+    if(data.callback === 'yes') toggleCallback(true);
+    if(data.cbTimeSelect === 'other') checkCbTimeOther();
+
+    if (data.signature && !isCanvasBlank()) {
+        clearSignature(); 
+        const img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+        };
+        img.src = data.signature;
+    }
+    
+    showToast(i18n[currentLang].msgDraftLoaded, "success");
+}
+
+/**
+ * 完成與匯出
+ */
+function finishSurvey() {
+    if (!validateForm(true)) return;
+
+    showConfirm(i18n[currentLang].msgConfirmComplete, () => {
+        generatePDF();
+        generateExcel();
+    });
+}
+
+function resetForm() {
+    showConfirm(i18n[currentLang].msgConfirmReset, () => {
+        document.getElementById('surveyForm').reset();
+        clearSignature();
+        document.getElementById('headerIdDisplay').textContent = "______";
+        document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        toggleProxy(false);
+        toggleCallback(false);
+        
+        // 重置藥品清單
+        selectedDrugList = [];
+        renderSelectedDrugs();
+        
+        window.scrollTo(0,0);
+        showToast("已重置", "success");
+    });
+}
+
+/**
+ * 匯出實作
+ */
+async function generatePDF() {
+    if (!window.jspdf || !window.html2canvas) {
+        showToast("PDF 模組未載入，請檢查網路或 CDN", "error");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const container = document.getElementById('surveyContainer');
+    
+    showToast("正在產生 PDF...", "success");
+
+    try {
+        const canvasImg = await html2canvas(container, {
+            scale: 2,
+            useCORS: true,
+            ignoreElements: (element) => {
+                // 排除不需要列印的元素，包含新增的按鈕
+                return element.classList.contains('footer-actions') || 
+                       element.classList.contains('lang-select') ||
+                       element.classList.contains('manage-btn') ||
+                       element.classList.contains('add-btn') ||
+                       element.classList.contains('remove-x');
+            }
+        });
+
+        const imgData = canvasImg.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        let heightLeft = pdfHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+        }
+
+        const filename = `MedSurvey_${document.getElementById('patientId').value}_${new Date().toISOString().slice(0,10)}.pdf`;
+        pdf.save(filename);
+        showToast("PDF 下載成功", "success");
+
+    } catch (err) {
+        console.error("PDF Export Error", err);
+        showToast("PDF 匯出失敗，請檢查瀏覽器相容性", "error");
+    }
+}
+
+function generateExcel() {
+    if (!window.XLSX) {
+        showToast("Excel 模組未載入，請檢查網路或 CDN", "error");
+        return;
+    }
+
+    try {
+        const data = getFormData();
+        
+        const flatData = {
+            "衛教編號": data.eduId,
+            "日期": data.surveyDate,
+            "時間": data.surveyTime,
+            "藥師": data.pharmacistName,
+            "填寫者": data.filler === 'self' ? '本人' : `代填 (${data.proxyRelation})`,
+            "病歷號": data.patientId,
+            "姓名": data.patientName,
+            "電話": data.phone,
+            "教育程度": data.education,
+            "語言": data.eduLanguage,
+            "藥品": data.drugs.join(', '), // 這裡的 data.drugs 已是陣列
+            // 認知度
+            "Q1-前": data['k1-pre'], "Q1-後": data['k1-post'],
+            "Q2-前": data['k2-pre'], "Q2-後": data['k2-post'],
+            "Q3-前": data['k3-pre'], "Q3-後": data['k3-post'],
+            // 滿意度
+            "流程滿意度": data.satProcess,
+            "態度滿意度": data.satAttitude,
+            "再詢問": data.askAgain === 'other' ? data.askAgainOther : data.askAgain,
+            "接受電訪": data.callback === 'yes' ? `願意 (${data.cbTimeSelect} / ${data.cbContact} / ${data.cbPhone})` : "不願意",
+            "簽名檔": "(請見附件圖片或 PDF)" 
+        };
+
+        const ws = XLSX.utils.json_to_sheet([flatData]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "SurveyData");
+        
+        const filename = `MedSurvey_${data.patientId}_${new Date().toISOString().slice(0,10)}.xlsx`;
+        XLSX.writeFile(wb, filename);
+        showToast("Excel 下載成功", "success");
+    } catch (err) {
+        console.error(err);
+        showToast("Excel 匯出失敗", "error");
+    }
+}
+</script>
+
+</body>
+</html>
